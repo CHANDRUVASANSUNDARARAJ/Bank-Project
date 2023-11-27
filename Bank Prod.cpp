@@ -6,10 +6,11 @@
 using namespace std;
 
 int createAccount();
-string findCustomer();
-int checkBalance();
-int creditToAccount();
-int debitFromAccount();
+string findCustomer(int accountNumber);
+int checkBalance(int accountNumber);
+int creditToAccount(int accountNumber);
+int debitFromAccount(int accountNumber);
+void transferAmount();
 
 vector<pair<int, string> > customers;
 vector<pair<int, int> > balance;
@@ -18,7 +19,7 @@ int main()
 {
 	start:
 	int functionality;
-	cout<<"Enter the functionality :"<<"\n"<<"1.Create Account"<<"\n"<<"2.Find Customer"<<"\n"<<"3.Balance Enquiry"<<"\n"<<"4.Cash Deposit / Credit"<<"\n"<<"5.Cash WithDraw"<<"\n"<<"6.Exit"<<"\n";
+	cout<<"Enter the functionality :"<<"\n"<<"1.Create Account"<<"\n"<<"2.Find Customer"<<"\n"<<"3.Balance Enquiry"<<"\n"<<"4.Cash Deposit / Credit"<<"\n"<<"5.Cash WithDraw"<<"\n"<<"6.Amount Transfer"<<"\n"<<"7.Exit"<<"\n";
 	cout<<"----------------------"<<endl;
 	cin>>functionality;
 	int accountNumber;
@@ -36,29 +37,48 @@ int main()
 			goto start;
 		case 2:
 			cout<<"---------------Search Customer---------------"<<endl;
-			customerName = findCustomer();
+			cout<<"Enter Account Number: ";
+			cin>>accountNumber;
+			customerName = findCustomer(accountNumber);
+			if(customerName != "false") {
 			cout<<"Customer Name is : "<<customerName <<endl;
 			cout<<"----------------------"<<endl;
 			goto start;
+			}
+			else {
+				cout<<"!!! Account Number Not Found !!!"<<endl;
+				cout<<"----------------------"<<endl;
+				goto start;
+			}
 		case 3:
 			cout<<"---------------Balance Enquiry---------------"<<endl;
-			accountBalance = checkBalance();
+			cout<<"Enter Account Number: ";
+			cin>>accountNumber;
+			accountBalance = checkBalance(accountNumber);
 			cout<<"Balance Amount :"<<accountBalance<<endl;
 			cout<<"----------------------"<<endl;
 			goto start;
 		case 4:
 			cout<<"---------------Amount Credit---------------"<<endl;
-			balanceAfterCredit = creditToAccount();
+			cout<<"Enter Account Number: ";
+			cin>>accountNumber;
+			balanceAfterCredit = creditToAccount(accountNumber);
 			cout<<"*****Amount Credited Successfully*****"<<endl;
 			cout<<"Your New Balance is: "<<balanceAfterCredit<<endl;
 			cout<<"----------------------"<<endl;
 			goto start;
 		case 5:
 			cout<<"---------------Amount WithDraw---------------"<<endl;
-			balanceAfterDebit = debitFromAccount();
+			cout<<"Enter Account Number: ";
+			cin>>accountNumber;
+			balanceAfterDebit = debitFromAccount(accountNumber);
 			cout<<"*****Amount Withdrawed Successfully*****"<<endl;
 			cout<<"Your New Balance is: "<<balanceAfterDebit<<endl;
 			cout<<"----------------------"<<endl;
+			goto start;
+		case 6:
+			cout<<"---------------Amount Transfer---------------"<<endl;
+			transferAmount();
 			goto start;
 		default:
 			cout<<"Invalid Option!!!";
@@ -86,24 +106,18 @@ int createAccount()
 	return accountNumber;
 }
 
-string findCustomer() {
-	int accountNumber;
-	cout<<"Enter Account Number: ";
-	cin>>accountNumber;
+string findCustomer(int accountNumber) {
 	int customersSize = customers.size();
 	for(int item=0;item<customersSize;item++) {
 		if(customers[item].first == accountNumber) {
 			return customers[item].second;
 		}
 	}
-	cout<<"!!! Account Number Not Found !!!";
+	return "false";
 }
 
-int creditToAccount() {
-	int accountNumber;
+int creditToAccount(int accountNumber) {
 	int amountToCredit;
-	cout<<"Enter Account Number: ";
-	cin>>accountNumber;
 	cout<<"Enter Amount to credit: ";
 	cin>>amountToCredit;
 	for(int item = 0;item<balance.size();item++) {
@@ -115,11 +129,8 @@ int creditToAccount() {
 	return 0;
 }
 
-int debitFromAccount() {
-	int accountNumber;
+int debitFromAccount(int accountNumber) {
 	int debitAmount;
-	cout<<"Enter Account Number: ";
-	cin>>accountNumber;
 	cout<<"Enter Amount you want: ";
 	cin>>debitAmount;
 	for(int item = 0;item<balance.size();item++) {
@@ -136,10 +147,7 @@ int debitFromAccount() {
 	return 0;
 }
 
-int checkBalance() {
-	int accountNumber;
-	cout<<"Enter Account Number: ";
-	cin>>accountNumber;
+int checkBalance(int accountNumber) {
 	for(int item = 0;item<balance.size();item++) {
 		if(accountNumber == balance[item].first) {
 			return balance[item].second;
@@ -148,6 +156,26 @@ int checkBalance() {
 	return 0;
 }
 
-
-
-
+void transferAmount() {
+	int fromAccountNumber;
+	int toAccountNumber;
+	int amountToTransfer;
+	cout<<"Enter the account Number of Sender: ";
+	cin>>fromAccountNumber;
+	cout<<"Enter Amount to transfer: ";
+	cin>>amountToTransfer;
+	int senderBalanceCheck = checkBalance(fromAccountNumber);
+	if(amountToTransfer <= senderBalanceCheck) {
+		cout<<"Enter the account Number of Receiver: ";
+		cin>>toAccountNumber;
+		for(int item = 0;item<balance.size();item++) {
+			if(toAccountNumber == balance[item].first) {
+				balance[item].second = balance[item].second+amountToTransfer;
+			}
+			if(fromAccountNumber == balance[item].first) {
+				balance[item].second = balance[item].second-amountToTransfer;
+			}
+		}
+		cout<<"*****Amount Transferred Successfully*****"<<endl;
+	}
+}
