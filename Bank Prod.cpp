@@ -18,11 +18,14 @@ void atmPinGeneration();
 bool existsCard(int cardNumber);
 bool validatePIN(int PIN,int cardNumber);
 int fetchAccountNumber(int cardNumber);
+void atmCredit(int cardNumber);
+void atmPINChange(int cardNumber);
 
-vector<pair<int, string>> customers;
-vector<pair<int, int>> balance;
+vector<pair<int, string>> customers;// account Number  + Name
+vector<pair<int, int>> balance;// Account number + Balance
 vector<pair<int,int>> ATMCardDetails; //Account  Number + Card Number
 vector<pair<int,int>> ATMPin; //Card Number + PIN
+vector<vector<string>> customerDetails;
 
 int main()
 {
@@ -103,14 +106,14 @@ int main()
 
 int createAccount() {
 	string firstName;
-	string dOB;
+	int age;
 	int accountNumber;
 	srand(time(0));
 	int initialBalnace;
 	cout << "Enter first name: ";
 	cin>>firstName;
-	cout << "Date of Birth: ";
-	cin>>dOB;
+	cout << "Enter Your AGE: ";
+	cin>>age;
 	cout<<"Enter Initial Balance: ";
 	cin>>initialBalnace;
 	accountNumber = rand();
@@ -206,16 +209,20 @@ bool isCustomerExists(int accountNumber) {
 void atmFunction() {
     int functionalityOfAtm;
     int accountNumber;
+    int cardNumber;
     int accountBalance;
     int balanceAfterDebit;
+    int PIN;
     cout<<"Choose your Option :"<<endl;
-    cout<<"1.Apply ATM Card :"<<endl;
+    cout<<"1.Apply ATM Card"<<endl;
     cout<<"2.Withdraw"<<endl;
     cout<<"3.Balance Enquiry"<<endl;
     cout<<"4.PIN Generation"<<endl;
-    cout<<"5.Goto Banking"<<endl;
+    cout<<"5.Amount Credit"<<endl;
+    cout<<"6.PIN Change"<<endl;
+    cout<<"7.Goto Banking"<<endl;
+    cout<<"----------------------"<<endl;
     cin>>functionalityOfAtm;
-    int cardNumber;
     switch(functionalityOfAtm) {
     case 1:
         cout<<"---------------Application For ATM Card---------------"<<endl;
@@ -226,7 +233,8 @@ void atmFunction() {
             int atmCardNumber = applyATM(accountNumber);
             cout<<"*****Applied Successfully*****"<<endl;
             cout<<"Please Note Your Card Number :"<<atmCardNumber<<endl;;
-            cout<<"Thank You";
+            cout<<"Thank You"<<endl;
+            cout<<"----------------------"<<endl;
         }
         break;
     case 2:
@@ -240,16 +248,39 @@ void atmFunction() {
         cout<<"---------------Check Balance---------------"<<endl;
         cout<<"Enter Card Number :";
         cin>>cardNumber;
-        accountNumber = fetchAccountNumber(cardNumber);
-        accountBalance = checkBalance(accountNumber);
-        cout<<"Balance Amount :"<<accountBalance<<endl;
+        cout<<"Enter Your PIN :";
+        cin>>PIN;
+        if(validatePIN(PIN,cardNumber)) {
+            accountNumber = fetchAccountNumber(cardNumber);
+            accountBalance = checkBalance(accountNumber);
+            cout<<"Balance Amount :"<<accountBalance<<endl;
+        } else {
+            cout<<"The PIN you Entered is wrong"<<endl;
+        }
         cout<<"----------------------"<<endl;
         break;
     case 4:
         cout<<"---------------PIN Generation---------------"<<endl;
         atmPinGeneration();
+        cout<<"----------------------"<<endl;
+        break;
+    case 5:
+        cout<<"---------------Amount Credit---------------"<<endl;
+        cout<<"Enter Your card Number";
+        cin>>cardNumber;
+        atmCredit(cardNumber);
+        cout<<"----------------------"<<endl;
+        break;
+    case 6:
+        cout<<"---------------PIN Change---------------"<<endl;
+        cout<<"Enter Your Card Number :";
+        cin>>cardNumber;
+        atmPINChange(cardNumber);
+        cout<<"----------------------"<<endl;
+        break;
     default:
         cout<<"Invalid Option !!!"<<endl;
+        cout<<"----------------------"<<endl;
         break;
     }
 }
@@ -270,14 +301,21 @@ void atmWithDraw(int cardNumber) {
                 cout<<"Enter Your PIN :";
                 cin>>PIN;
                 bool pinValidation = validatePIN(PIN,cardNumber);
+                if(pinValidation) {
                 int viewBalance;
                 int currentBalance = debitFromAccount(ATMCardDetails[item].first);
+                cout<<"*****Amount Withdrawed Successfully*****"<<endl;
                 cout<<"Do you Want to See Your Balance ?"<<endl;
+
                 cout<<"1.Yes"<<endl;
                 cout<<"2.No"<<endl;
                 cin>>viewBalance;
                 if(viewBalance == 1) {
                     cout<<"Your Balance is :"<<currentBalance<<endl;
+                }
+                }
+                else {
+                    return;
                 }
             }
         }
@@ -288,8 +326,38 @@ void atmWithDraw(int cardNumber) {
     return;
 }
 
-void atmPinGeneration()
-{
+void atmCredit(int cardNumber) {
+    if(existsCard(cardNumber)) {
+        for(int item = 0;item<=ATMCardDetails.size();item++) {
+            if(cardNumber == ATMCardDetails[item].second) {
+                int PIN;
+                cout<<"Enter Your PIN :";
+                cin>>PIN;
+                bool pinValidation = validatePIN(PIN,cardNumber);
+                if(pinValidation) {
+                    int viewBalance;
+                    int currentBalance = creditToAccount(ATMCardDetails[item].first);
+                    cout<<"*****Amount Credited Successfully*****"<<endl;
+                    cout<<"Do you Want to See Your Balance ?"<<endl;
+                    cout<<"----------------------"<<endl;
+                    cout<<"1.Yes"<<endl;
+                    cout<<"2.No"<<endl;
+                    cin>>viewBalance;
+                    if(viewBalance == 1) {
+                        cout<<"Your Balance is :"<<currentBalance<<endl;
+                    }
+                }
+                else {
+                    return;
+                }
+            }
+        }
+    }
+    else {
+        cout<<"Invalid Card Number !!!"<<endl;
+    }
+}
+void atmPinGeneration() {
     int accountNumber;
     int cardNumber;
     int PIN;
@@ -305,13 +373,33 @@ void atmPinGeneration()
     }
 }
 
+void atmPINChange(int cardNumber) {
+    int oldPIN;
+    int newPIN;
+    if(existsCard(cardNumber)) {
+        cout<<"Enter Your Old PIN :";
+        cin>>oldPIN;
+        if(validatePIN(oldPIN,cardNumber)) {
+            for(int item = 0;item < ATMPin.size();item++) {
+                if(ATMPin[item].first == cardNumber) {
+                    cout<<"Enter Your PIN :";
+                    cin>>newPIN;
+                    ATMPin[item].second = newPIN;
+                    cout<<"PIN Changed Successfully"<<endl;
+                }
+            }
+       }
+    }
+}
+
 bool existsCard(int cardNumber) {
     for(int item = 0;item<=ATMCardDetails.size();item++) {
         if(cardNumber == ATMCardDetails[item].second) {
             return true;
         }
     }
-    cout<<"Card Not Exist!!!";
+    cout<<"Card Not Exist!!!"<<endl;
+    cout<<"----------------------"<<endl;
     return false;
 }
 
@@ -323,6 +411,7 @@ bool validatePIN(int PIN,int cardNumber) {
             }
         }
     }
+    cout<<"Wrong PIN !!!";
     return false;
 }
 
@@ -334,6 +423,8 @@ int fetchAccountNumber(int cardNumber) {
                 return ATMCardDetails[item].first;
             }
         } else {
+            cout<<"Card Number Invalid !!!"<<endl;
+            cout<<"----------------------"<<endl;
             return 0;
         }
     }
